@@ -35,25 +35,32 @@ def canny_edge(grayscale_frame):
     return cv2.Canny(grayscale_frame, 200, 10)
 
 
+vertices = np.array([[0, 1080], [0, 540], [1920, 540], [1920, 1080]], np.int32)
+
+
+def roi(img, vertices):
+    #blank mask:
+    mask = np.zeros_like(img)
+    # fill the mask
+    cv2.fillPoly(mask, [vertices], WHITE)
+    # now only show the area that is the mask
+    masked = cv2.bitwise_and(img, mask)
+    return masked
+
+
 cap = capture = cv2.VideoCapture('drive.mp4')
+
 
 try:
     while cap.isOpened():
         ret, frame = cap.read()
         height, width, layers = frame.shape
-        new_h = height / 4
-        new_w = width / 4
-        resize_frame = cv2.resize(frame, (new_w, new_h))
-        rgb_frame = to_rgb(resize_frame)
-        grayscale_frame = to_grayscale(resize_frame)
-        gray_scale_rgb = cv2.cvtColor(grayscale_frame, cv2.COLOR_GRAY2RGB)
+        frame = roi(frame, vertices)
+        grayscale_frame = to_grayscale(frame)
         canny_frame = canny_edge(grayscale_frame)
-        screen.blit(cv2pygame(rgb_frame), (0, 0))
-        screen.blit(cv2pygame(gray_scale_rgb), (480, 0))
-        screen.blit(cv2pygame(canny_frame), (960, 0))
-        hough_transform(resize_frame, canny_frame)
-        screen.blit(cv2pygame(resize_frame), (1440, 0))
-        #pygame.display.flip()
+        hough_transform(frame, canny_frame)
+        screen.blit(cv2pygame(frame), (0, 0))
+
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
