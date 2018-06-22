@@ -47,24 +47,26 @@ def roi(img, vertices):
     masked = cv2.bitwise_and(img, mask)
     return masked
 
+#https://github.com/udacity/CarND-LaneLines-P1/tree/master/test_videos
+cap = capture = cv2.VideoCapture('solidWhiteRight.mp4')
 
-cap = capture = cv2.VideoCapture('drive.mp4')
-
-
+ret = True
 try:
-    while cap.isOpened():
+    while cap.isOpened() and ret:
         ret, frame = cap.read()
-        height, width, layers = frame.shape
-        frame = roi(frame, vertices)
-        grayscale_frame = to_grayscale(frame)
-        canny_frame = canny_edge(grayscale_frame)
-        hough_transform(frame, canny_frame)
-        screen.blit(cv2pygame(frame), (0, 0))
+        if frame is not None and frame.any():
+            height, width, layers = frame.shape
+            frame = cv2.flip(frame, 1)
+            #frame = roi(frame, vertices)
+            grayscale_frame = to_grayscale(frame)
+            canny_frame = canny_edge(grayscale_frame)
+            hough_transform(frame, canny_frame)
+            screen.blit(cv2pygame(to_rgb(frame)), (0, 0))
 
-        pygame.display.update()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit(0)
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit(0)
 
 except KeyboardInterrupt:
     cv2.destroyAllWindows()
